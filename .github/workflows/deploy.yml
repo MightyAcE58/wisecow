@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - AKS-Cluster
 
 jobs:
   build-and-deploy:
