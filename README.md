@@ -1,5 +1,20 @@
 # Cow wisdom web server
 
+## Message for viewer
+
+if you are reviewing this branch :``` main  ``` it's for the bare Metal vm deployment and the AKS-Cluster branch is for Azure ASK service branch deployment currently the url is being pointed to the AKS service to see the deployment 
+
+## Warning 
+
+if you click on the URL and you find the server not found or Invalid address Probably i have exausted the $10 remaining credit on Azure on AKS service 
+
+
+## how the website look Before the AKS service stop 
+
+
+<img width="493" height="341" alt="image" src="https://github.com/user-attachments/assets/095c5b48-ebbd-446e-a342-65312b5eed51" />
+
+
 ## Prerequisites
 
 ```
