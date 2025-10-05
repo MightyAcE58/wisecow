@@ -33,9 +33,13 @@ jobs:
           kubectl apply --kubeconfig=kubeconfig.yaml -f ingress-nginx-namespace.yaml
 
       # 5️ Install cert-manager CRDs
-      - name: Install cert-manager CRDs
+      - name: Install cert-manager
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml
+          kubectl apply --kubeconfig=kubeconfig.yaml -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+          kubectl rollout status deployment/cert-manager -n cert-manager
+          kubectl rollout status deployment/cert-manager-webhook -n cert-manager
+          kubectl rollout status deployment/cert-manager-cainjector -n cert-manager
+
 
       # 6️ Apply ClusterIssuer for TLS
       - name: Apply ClusterIssuer
