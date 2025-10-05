@@ -20,56 +20,55 @@ jobs:
         with:
           version: 'latest'
 
-      # 3️ Decode kubeconfig from secret and set KUBECONFIG
+      # 3️ Decode kubeconfig and persist it for all steps
+      - name: Configure kubeconfig
       - name: Configure kubeconfig
         run: |
-          echo "${{ secrets.AKS_KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
-          export KUBECONFIG=$(pwd)/kubeconfig.yaml
+          echo "${{ secrets.AKS_KUBECONFIG }}" | base64 --decode > $HOME/kubeconfig.yaml
+          echo "KUBECONFIG=$HOME/kubeconfig.yaml" >> $GITHUB_ENV
 
       # 4️ Apply namespaces
       - name: Apply namespaces
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f namespace.yaml
-          kubectl apply --kubeconfig=kubeconfig.yaml -f ingress-nginx-namespace.yaml
+          kubectl apply -f namespace.yaml
+          kubectl apply -f ingress-nginx-namespace.yaml
 
       # 5️ Install cert-manager CRDs
-
       - name: Install cert-manager CRDs
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml
 
-          
+      # 6️ Install cert-manager (not just the CRDs)
       - name: Install cert-manager
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
           kubectl rollout status deployment/cert-manager -n cert-manager
           kubectl rollout status deployment/cert-manager-webhook -n cert-manager
           kubectl rollout status deployment/cert-manager-cainjector -n cert-manager
 
-
-      # 6️ Apply ClusterIssuer for TLS
+      # 7️ Apply ClusterIssuer for Let's Encrypt
       - name: Apply ClusterIssuer
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f ClusterIssuer.yaml
+          kubectl apply -f ClusterIssuer.yaml
 
-      # 7️ Apply Deployment and Service
+      # 8️ Deploy your app
       - name: Deploy application
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f deployment.yaml
-          kubectl apply --kubeconfig=kubeconfig.yaml -f service.yaml
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
 
-      # 8️ Deploy ingress-nginx controller
+      # 9️ Deploy ingress-nginx controller
       - name: Apply ingress-nginx controller
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f ingress-nginx-controller.yaml --wait
+          kubectl apply -f ingress-nginx-controller.yaml --wait
 
-      # 9️ Apply Ingress with TLS annotations
+      # 10 Apply Ingress with TLS annotations
       - name: Apply Ingress
         run: |
-          kubectl apply --kubeconfig=kubeconfig.yaml -f ingress.yaml --wait
+          kubectl apply -f ingress.yaml --wait
 
-      #  Wait for TLS certificate
+      #  Wait for TLS certificate request
       - name: Wait for TLS certificate
         run: |
           echo "Waiting for TLS certificate to be ready..."
-          kubectl wait --kubeconfig=kubeconfig.yaml --for=condition=Ready certificate/wisecow-tls -n wisecow --timeout=300s || true
+          kubectl wait --for=condition=Ready certificate/wisecow-tls -n wisecow --timeout=300s || true
